@@ -4,6 +4,7 @@ import java.awt.*;
 public class Main {
     public static void main(String[] args) {
 
+        final String[] VIEWS = {"AftFore", "TopBottom", "Profile"};
         String pwd = System.getProperty("user.dir");
 
         System.out.println("Choose Active Sim:");
@@ -74,8 +75,10 @@ public class Main {
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //exit out application by default
         window.getContentPane().setBackground(new Color(25, 25, 25));
 
-        SceneLoader active = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
-
+        SceneLoader act = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
+        SceneLoader bsl = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
+        ImageDisplayPanel activeScenes = new ImageDisplayPanel(act.cptScenes.getImages(VIEWS[2]), bsl.cptScenes.getImages(VIEWS[2]), 2);
+        window.add(activeScenes);
         window.setVisible(true);
 
 

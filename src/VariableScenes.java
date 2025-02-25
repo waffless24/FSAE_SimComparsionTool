@@ -13,23 +13,30 @@ public class VariableScenes {
 
     public ArrayList<BufferedImage> getImages(String view) {
         ArrayList<BufferedImage> images = new ArrayList<>();
-        File imageDir = null;
+        String dir = "";
 
         for (File file : this.sceneFiles) {
             if (file.getName().contains(view)) {
-                imageDir = new File(file.getAbsolutePath());
+                dir = file.getAbsolutePath();
             }
         }
 
-        assert imageDir != null;
+
+        File imageDir = new File(dir + "/");
         File[] imageFiles = imageDir.listFiles();
 
         assert imageFiles != null;
+
         for (File image : imageFiles) {
             try {
-                BufferedImage img = ImageIO.read(image);
-                if (img != null) {
-                    images.add(img);
+                if (image.isFile()){
+                    BufferedImage img = ImageIO.read(image);
+                    if (img != null) {
+                        images.add(img);
+                    }
+                    else {
+                        System.err.println("Unsupported image format: " + image.getName());
+                    }
                 }
             } catch (IOException e) {
                 System.err.println("Error loading image: " + image.getName());
