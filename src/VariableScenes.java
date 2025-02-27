@@ -3,6 +3,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class VariableScenes {
     private final ArrayList<File> sceneFiles;
@@ -24,8 +26,8 @@ public class VariableScenes {
 
         File imageDir = new File(dir + "/");
         File[] imageFiles = imageDir.listFiles();
-
         assert imageFiles != null;
+        Arrays.sort(imageFiles, Comparator.comparing(File::getName));
 
         for (File image : imageFiles) {
             try {

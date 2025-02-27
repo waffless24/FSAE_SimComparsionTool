@@ -1,5 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class Main {
     public static void main(String[] args) {
@@ -77,8 +79,22 @@ public class Main {
 
         SceneLoader act = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
         SceneLoader bsl = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
-        ImageDisplayPanel activeScenes = new ImageDisplayPanel(act.cptScenes.getImages(VIEWS[2]), bsl.cptScenes.getImages(VIEWS[2]), 2);
-        window.add(activeScenes);
+        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(VIEWS[2]), bsl.cptScenes.getImages(VIEWS[2]), 0);
+
+        // Toggling mechanism
+        window.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                // Moving downstream with right arrow
+                if(e.getKeyCode() == KeyEvent.VK_RIGHT){
+                    displayer.toggleStreamDown();
+                }
+                // Moving upstream with left arrown
+                if(e.getKeyCode() == KeyEvent.VK_LEFT){
+                    displayer.toggleStreamUp();
+                }
+            }
+        });
+        window.add(displayer);
         window.setVisible(true);
 
 

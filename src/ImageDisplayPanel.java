@@ -7,12 +7,14 @@ public class ImageDisplayPanel extends JPanel {
     private final ArrayList<BufferedImage> actScene;
     private final ArrayList<BufferedImage> bslScene;
     private boolean actSceneToggle = true;
+    private int totalCount;
     private int streamCount;
 
     public ImageDisplayPanel(ArrayList<BufferedImage> actScene, ArrayList<BufferedImage> bslScene, int count){
         this.actScene = actScene;
         this.bslScene = bslScene;
         this.streamCount = count;
+        this.totalCount = actScene.size() - 1;
         repaint();
     }
 
@@ -22,18 +24,30 @@ public class ImageDisplayPanel extends JPanel {
     }
 
     public void toggleStreamDown(){
-        streamCount++;
+        if (this.streamCount == this.totalCount) {
+            this.streamCount = 0;
+        }
+        else {
+            this.streamCount++;
+        }
+        repaint();
     }
 
     public void toggleStreamUp(){
-        streamCount--;
+        if (this.streamCount == 0) {
+            this.streamCount = this.totalCount;
+        }
+        else {
+            this.streamCount--;
+        }
+        repaint();
     }
 
     @Override
     protected void paintComponent(Graphics g){
         super.paintComponent(g);
 
-        BufferedImage imageToDraw = actSceneToggle ? actScene.get(1) : bslScene.get(1);
+        BufferedImage imageToDraw = actSceneToggle ? actScene.get(this.streamCount) : bslScene.get(this.streamCount);
         if (imageToDraw != null) {
             Graphics2D g2d = (Graphics2D) g.create();
 
