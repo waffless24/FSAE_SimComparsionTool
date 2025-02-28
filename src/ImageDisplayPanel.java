@@ -4,13 +4,21 @@ import java.awt.*;
 import java.util.ArrayList;
 
 public class ImageDisplayPanel extends JPanel {
-    private final ArrayList<BufferedImage> actScene;
-    private final ArrayList<BufferedImage> bslScene;
+    private ArrayList<BufferedImage> actScene;
+    private ArrayList<BufferedImage> bslScene;
     private boolean actSceneToggle = true;
     private int totalCount;
     private int streamCount;
 
     public ImageDisplayPanel(ArrayList<BufferedImage> actScene, ArrayList<BufferedImage> bslScene, int count){
+        this.actScene = actScene;
+        this.bslScene = bslScene;
+        this.streamCount = count;
+        this.totalCount = actScene.size() - 1;
+        repaint();
+    }
+
+    public void switchVariable(ArrayList<BufferedImage> actScene, ArrayList<BufferedImage> bslScene, int count){
         this.actScene = actScene;
         this.bslScene = bslScene;
         this.streamCount = count;
