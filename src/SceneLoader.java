@@ -16,7 +16,7 @@ public class SceneLoader {
 
     public SceneLoader(String dir){
 
-        File sim = new File(dir + "/" + SCENES_2D + "/");
+        File sim = new File(dir + File.separator + SCENES_2D + File.separator);
         File[] allScenes = sim.listFiles();
         String[] allScenesNames = new String[allScenes.length];
 

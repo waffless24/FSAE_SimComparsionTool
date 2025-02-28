@@ -1,28 +1,32 @@
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.Buffer;
 import java.util.ArrayList;
 
 public class ImageDisplayPanel extends JPanel {
-    private ArrayList<BufferedImage> actScene;
-    private ArrayList<BufferedImage> bslScene;
+    private File[] actScene;
+    private File[] bslScene;
     private boolean actSceneToggle = true;
     private int totalCount;
     private int streamCount;
 
-    public ImageDisplayPanel(ArrayList<BufferedImage> actScene, ArrayList<BufferedImage> bslScene, int count){
+    public ImageDisplayPanel(File[] actScene, File[] bslScene, int count){
         this.actScene = actScene;
         this.bslScene = bslScene;
         this.streamCount = count;
-        this.totalCount = actScene.size() - 1;
+        this.totalCount = actScene.length - 1;
         repaint();
     }
 
-    public void switchVariable(ArrayList<BufferedImage> actScene, ArrayList<BufferedImage> bslScene, int count){
+    public void switchVariable(File[] actScene, File[] bslScene, int count){
         this.actScene = actScene;
         this.bslScene = bslScene;
         this.streamCount = count;
-        this.totalCount = actScene.size() - 1;
+        this.totalCount = actScene.length - 1;
         repaint();
     }
 
@@ -55,7 +59,20 @@ public class ImageDisplayPanel extends JPanel {
     protected void paintComponent(Graphics g){
         super.paintComponent(g);
 
-        BufferedImage imageToDraw = actSceneToggle ? actScene.get(this.streamCount) : bslScene.get(this.streamCount);
+        BufferedImage actImage = null;
+        try {
+            actImage = ImageIO.read(actScene[this.streamCount]);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        BufferedImage bslImage = null;
+        try {
+            bslImage = ImageIO.read(bslScene[this.streamCount]);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        BufferedImage imageToDraw = actSceneToggle ? actImage : bslImage;
         if (imageToDraw != null) {
             Graphics2D g2d = (Graphics2D) g.create();
 

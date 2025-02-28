@@ -18,14 +18,19 @@ public class Main {
 
         // Check if user clicked "Choose"
         if (actResult == JFileChooser.APPROVE_OPTION) {
-            while (!actFC.getSelectedFile().getName().contains("CM")){
+            while (!actFC.getSelectedFile().getName().contains("CM")) {
                 System.out.println("Please select a colour-mapped file (MUST begin with CM_)");
                 actFC.setDialogTitle("Choose Active Sim CM");
                 actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 actFC.showOpenDialog(null);
             }
             System.out.println("Selected file: " + actFC.getSelectedFile().getAbsolutePath());
-        } else {
+        }
+        else if (actResult == JFileChooser.CANCEL_OPTION) {
+            System.out.println("Program Terminated by User");
+            System.exit(0);
+        }
+        else {
             System.out.println("No Active File Selected. Program Terminated");
             System.exit(0);
         }
@@ -39,14 +44,19 @@ public class Main {
 
         // Check if user clicked "Choose"
         if (bslResult == JFileChooser.APPROVE_OPTION) {
-            while (!actFC.getSelectedFile().getName().contains("CM")){
-                    System.out.println("Please select a colour-mapped file (MUST begin with CM_)");
-                    actFC.setDialogTitle("Choose Active Sim CM");
-                    actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                    actFC.showOpenDialog(null);
-                }
+            while (!actFC.getSelectedFile().getName().contains("CM")) {
+                System.out.println("Please select a colour-mapped file (MUST begin with CM_)");
+                actFC.setDialogTitle("Choose Active Sim CM");
+                actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                actFC.showOpenDialog(null);
+            }
             System.out.println("Selected file: " + bslFC.getSelectedFile().getAbsolutePath());
-        } else {
+        }
+        else if (bslResult == JFileChooser.CANCEL_OPTION) {
+            System.out.println("Program Terminated by User");
+            System.exit(0);
+        }
+        else {
             System.out.println("No Baseline File Selected. Program Terminated");
             System.exit(0);
         }
@@ -81,7 +91,7 @@ public class Main {
 
         SceneLoader act = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
         SceneLoader bsl = new SceneLoader(bslFC.getSelectedFile().getAbsolutePath());
-        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(VIEWS[2]), bsl.cptScenes.getImages(VIEWS[2]), 0);
+        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(VIEWS[0]), bsl.cptScenes.getImages(VIEWS[0]), 0);
 
         // Toggling mechanism
         window.addKeyListener(new KeyAdapter() {
@@ -101,7 +111,8 @@ public class Main {
                     toggleFlag[0] = true;
                 }
             }
-            public void keyReleased(KeyEvent e){
+
+            public void keyReleased(KeyEvent e) {
                 // Toggling between active and basline
                 if (e.getKeyCode() == KeyEvent.VK_SPACE && toggleFlag[0]) {
                     displayer.toggleScene();
@@ -110,7 +121,58 @@ public class Main {
             }
         });
 
-        VariableController menu = new VariableController(VARIABLES, VIEWS);
+        JPopupMenu mainMenu = new JPopupMenu();
+
+        //ActionListener to retrieve selected value
+        ActionListener menuListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent event) {
+                JMenuItem source = (JMenuItem) event.getSource(); // Get clicked item
+                JPopupMenu parentMenu = (JPopupMenu) source.getParent();   // Get parent menu
+
+                String selectedView = event.getActionCommand(); // View name (submenu item)
+                String dummySelectedVariable = String.valueOf(parentMenu.getInvoker());// Variable name (parent menu)
+                int index = dummySelectedVariable.indexOf(",text=");
+                String selectedVariable = dummySelectedVariable.substring(index + 6, dummySelectedVariable.length() - 1);
+
+                System.out.println("Selected Variable: " + selectedVariable);
+                System.out.println("Selected View: " + selectedView);
+
+                switch (selectedVariable){
+                    case "Total Pressure":
+                        displayer.switchVariable(act.cptScenes.getImages(selectedView), bsl.cptScenes.getImages(selectedView), 0);
+                        break;
+                    case "Pressure":
+                        displayer.switchVariable(act.pressureScenes.getImages(selectedView), bsl.pressureScenes.getImages(selectedView), 0);
+                        break;
+                    case "Inwash":
+                        displayer.switchVariable(act.inwashScenes.getImages(selectedView), bsl.inwashScenes.getImages(selectedView), 0);
+                        break;
+                    case "Velocity Z":
+                        displayer.switchVariable(act.velZScenes.getImages(selectedView), bsl.velZScenes.getImages(selectedView), 0);
+                        break;
+                    case "Vorticity":
+                        displayer.switchVariable(act.vorticityScenes.getImages(selectedView), bsl.vorticityScenes.getImages(selectedView), 0);
+                        break;
+                    default:
+                        System.out.println("wtf");
+                }
+
+            }
+        };
+
+        for (String s : VARIABLES) {
+            JMenu variableMenu = new JMenu(s); // Create a new menu for each variable
+
+            // Create submenu items inside this loop to ensure each menu gets its own set
+            for (String view : VIEWS) {
+                JMenuItem viewItem = new JMenuItem(view);
+                viewItem.addActionListener(menuListener);
+                variableMenu.add(viewItem); // Add directly to the current submenu
+            }
+
+            mainMenu.add(variableMenu);// Add submenu to the popup menu
+        }
 
         class PopupListener extends MouseAdapter {
             @Override
@@ -123,15 +185,15 @@ public class Main {
             }
 
             private void maybeShowPopup(MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    menu.show(e.getComponent(), e.getX(), e.getY());
+                if (SwingUtilities.isRightMouseButton(e)) {
+                    mainMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
         }
 
         MouseListener popupListener = new PopupListener();
         displayer.addMouseListener(popupListener);
-        displayer.add(menu);
+        displayer.add(mainMenu);
         window.add(displayer);
         window.setVisible(true);
 

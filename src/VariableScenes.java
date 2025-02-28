@@ -13,8 +13,8 @@ public class VariableScenes {
         this.sceneFiles = sceneFiles;
     }
 
-    public ArrayList<BufferedImage> getImages(String view) {
-        ArrayList<BufferedImage> images = new ArrayList<>();
+    public File[] getImages(String view) {
+        ArrayList<File> images = new ArrayList<>();
         String dir = "";
 
         for (File file : this.sceneFiles) {
@@ -23,28 +23,12 @@ public class VariableScenes {
             }
         }
 
-
-        File imageDir = new File(dir + "/");
+        File imageDir = new File(dir + File.separator);
         File[] imageFiles = imageDir.listFiles();
         assert imageFiles != null;
         Arrays.sort(imageFiles, Comparator.comparing(File::getName));
 
-        for (File image : imageFiles) {
-            try {
-                if (image.isFile()){
-                    BufferedImage img = ImageIO.read(image);
-                    if (img != null) {
-                        images.add(img);
-                    }
-                    else {
-                        System.err.println("Unsupported image format: " + image.getName());
-                    }
-                }
-            } catch (IOException e) {
-                System.err.println("Error loading image: " + image.getName());
-            }
-        }
-        return images;
+        return imageFiles;
     }
 
     public ArrayList<File> getSceneFiles() {
