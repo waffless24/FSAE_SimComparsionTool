@@ -11,14 +11,18 @@ public class ImageDisplayPanel extends JPanel {
     private File[] actScene;
     private File[] bslScene;
     private boolean actSceneToggle = true;
+    private final String actSimName;
+    private final String bslSimName;
     private int totalCount;
     private int streamCount;
 
-    public ImageDisplayPanel(File[] actScene, File[] bslScene, int count){
+    public ImageDisplayPanel(File[] actScene, File[] bslScene, int count, String actSimName, String bslSimName){
         this.actScene = actScene;
         this.bslScene = bslScene;
         this.streamCount = count;
         this.totalCount = actScene.length - 1;
+        this.actSimName = actSimName;
+        this.bslSimName = bslSimName;
         repaint();
     }
 
@@ -75,6 +79,7 @@ public class ImageDisplayPanel extends JPanel {
         }
 
         BufferedImage imageToDraw = actSceneToggle ? actImage : bslImage;
+        String textOverlay = actSceneToggle ? this.actSimName : this.bslSimName;
         if (imageToDraw != null) {
             Graphics2D g2d = (Graphics2D) g.create();
 
@@ -85,6 +90,7 @@ public class ImageDisplayPanel extends JPanel {
 
             int panelWidth = getWidth();
             int panelHeight = getHeight();
+            Point textLoc = getLocation();
 
             int imgWidth = imageToDraw.getWidth();
             int imgHeight = imageToDraw.getHeight();
@@ -101,6 +107,8 @@ public class ImageDisplayPanel extends JPanel {
             int y = (panelHeight - newHeight) / 2;
 
             g2d.drawImage(imageToDraw, x, y, newWidth, newHeight, this);
+            g2d.setFont(new Font("Arial", Font.BOLD, 20));
+            g2d.drawString(textOverlay, textLoc.x, textLoc.y + 20);
             g2d.dispose();
         }
     }

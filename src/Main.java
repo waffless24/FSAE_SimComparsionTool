@@ -94,7 +94,8 @@ public class Main {
 
         // Flag to check if the view is constant, to keep the same section when switching variables
         final String[] currentView = {VIEWS[0]};
-        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(currentView[0]), bsl.cptScenes.getImages(currentView[0]), 0);
+        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(currentView[0]), bsl.cptScenes.getImages(currentView[0]), 0,
+                actFC.getSelectedFile().getName(), bslFC.getSelectedFile().getName());
 
         // Toggling mechanism
         window.addKeyListener(new KeyAdapter() {
