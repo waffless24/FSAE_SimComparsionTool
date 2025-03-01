@@ -91,7 +91,10 @@ public class Main {
 
         SceneLoader act = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
         SceneLoader bsl = new SceneLoader(bslFC.getSelectedFile().getAbsolutePath());
-        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(VIEWS[0]), bsl.cptScenes.getImages(VIEWS[0]), 0);
+
+        // Flag to check if the view is constant, to keep the same section when switching variables
+        final String[] currentView = {VIEWS[0]};
+        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(currentView[0]), bsl.cptScenes.getImages(currentView[0]), 0);
 
         // Toggling mechanism
         window.addKeyListener(new KeyAdapter() {
@@ -138,21 +141,30 @@ public class Main {
                 System.out.println("Selected Variable: " + selectedVariable);
                 System.out.println("Selected View: " + selectedView);
 
+                int count = 0;
+
+                if (currentView[0].equals(selectedView)){
+                    count = -1;
+                }
+                else {
+                    currentView[0] = selectedView;
+                }
+
                 switch (selectedVariable){
                     case "Total Pressure":
-                        displayer.switchVariable(act.cptScenes.getImages(selectedView), bsl.cptScenes.getImages(selectedView), 0);
+                        displayer.switchVariable(act.cptScenes.getImages(selectedView), bsl.cptScenes.getImages(selectedView), count);
                         break;
                     case "Pressure":
-                        displayer.switchVariable(act.pressureScenes.getImages(selectedView), bsl.pressureScenes.getImages(selectedView), 0);
+                        displayer.switchVariable(act.pressureScenes.getImages(selectedView), bsl.pressureScenes.getImages(selectedView), count);
                         break;
                     case "Inwash":
-                        displayer.switchVariable(act.inwashScenes.getImages(selectedView), bsl.inwashScenes.getImages(selectedView), 0);
+                        displayer.switchVariable(act.inwashScenes.getImages(selectedView), bsl.inwashScenes.getImages(selectedView), count);
                         break;
                     case "Velocity Z":
-                        displayer.switchVariable(act.velZScenes.getImages(selectedView), bsl.velZScenes.getImages(selectedView), 0);
+                        displayer.switchVariable(act.velZScenes.getImages(selectedView), bsl.velZScenes.getImages(selectedView), count);
                         break;
                     case "Vorticity":
-                        displayer.switchVariable(act.vorticityScenes.getImages(selectedView), bsl.vorticityScenes.getImages(selectedView), 0);
+                        displayer.switchVariable(act.vorticityScenes.getImages(selectedView), bsl.vorticityScenes.getImages(selectedView), count);
                         break;
                     default:
                         System.out.println("wtf");

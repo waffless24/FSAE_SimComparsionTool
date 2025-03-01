@@ -36,8 +36,15 @@ public class SceneLoader {
         ArrayList<File> variableScenes = new ArrayList<File>();
 
         for (int i = 0; i < allScenes.length; i++){
-            if (allScenes[i].getName().contains(variable)){
-                index.add(i);
+            if (variable.equals("Pressure")) {
+                if (allScenes[i].getName().contains("Pressure") && !allScenes[i].getName().contains("Total Pressure")) {
+                    index.add(i);
+                }
+            }
+            else {
+                if (allScenes[i].getName().contains(variable)) {
+                    index.add(i);
+                }
             }
         }
         for (Integer integer : index) {

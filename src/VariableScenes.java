@@ -14,7 +14,6 @@ public class VariableScenes {
     }
 
     public File[] getImages(String view) {
-        ArrayList<File> images = new ArrayList<>();
         String dir = "";
 
         for (File file : this.sceneFiles) {

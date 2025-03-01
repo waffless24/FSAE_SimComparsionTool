@@ -25,8 +25,10 @@ public class ImageDisplayPanel extends JPanel {
     public void switchVariable(File[] actScene, File[] bslScene, int count){
         this.actScene = actScene;
         this.bslScene = bslScene;
-        this.streamCount = count;
-        this.totalCount = actScene.length - 1;
+        if (count != -1) {
+            this.totalCount = actScene.length - 1;
+            this.streamCount = count;
+        }
         repaint();
     }
 
