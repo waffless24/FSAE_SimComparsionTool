@@ -8,6 +8,7 @@ public class Main {
         final String[] VIEWS = {"AftFore", "TopBottom", "Profile"};
         final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "Vorticity", "Velocity Z"};
         final boolean[] toggleFlag = {false}; //flag for toggling since swing repeatedly sends signals while a key is pressed
+        final boolean[] deltaFlag = {false}; //flag for toggling delta; same reason
         String pwd = System.getProperty("user.dir");
 
         System.out.println("Choose Active Sim:");
@@ -61,7 +62,7 @@ public class Main {
             System.exit(0);
         }
 
-        /*
+
         System.out.println("Choose Delta sim:");
         JFileChooser deltaFC = new JFileChooser(pwd);
         deltaFC.setDialogTitle("Choose Delta sim");
@@ -81,7 +82,7 @@ public class Main {
             System.out.println("No Delta File Selected. Program Terminated");
             System.exit(0);
         }
-        */
+
 
         JFrame window = new JFrame();
         window.setTitle("SimComparisonTool");
@@ -91,11 +92,12 @@ public class Main {
 
         SceneLoader act = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
         SceneLoader bsl = new SceneLoader(bslFC.getSelectedFile().getAbsolutePath());
+        SceneLoader delta = new SceneLoader(deltaFC.getSelectedFile().getAbsolutePath());
 
         // Flag to check if the view is constant, to keep the same section when switching variables
         final String[] currentView = {VIEWS[0]};
-        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(currentView[0]), bsl.cptScenes.getImages(currentView[0]), 0,
-                actFC.getSelectedFile().getName(), bslFC.getSelectedFile().getName());
+        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(currentView[0]), bsl.cptScenes.getImages(currentView[0]), delta.cptScenes.getImages(currentView[0]),  0,
+                actFC.getSelectedFile().getName(), bslFC.getSelectedFile().getName(), deltaFC.getSelectedFile().getName());
 
         // Toggling mechanism
         window.addKeyListener(new KeyAdapter() {
@@ -110,19 +112,19 @@ public class Main {
                 }
 
                 // Toggling between active and basline
-                if (e.getKeyCode() == KeyEvent.VK_SPACE && !toggleFlag[0]) {
-                    displayer.toggleScene();
-                    toggleFlag[0] = true;
+                if (e.getKeyCode() == KeyEvent.VK_1) {
+                    displayer.toggleActive();
+                }
+
+                if (e.getKeyCode() == KeyEvent.VK_2) {
+                    displayer.toggleBaseline();
+                }
+
+                if (e.getKeyCode() == KeyEvent.VK_D) {
+                    displayer.toggleDelta();
                 }
             }
 
-            public void keyReleased(KeyEvent e) {
-                // Toggling between active and basline
-                if (e.getKeyCode() == KeyEvent.VK_SPACE && toggleFlag[0]) {
-                    displayer.toggleScene();
-                    toggleFlag[0] = false;
-                }
-            }
         });
 
         JPopupMenu mainMenu = new JPopupMenu();
@@ -153,19 +155,19 @@ public class Main {
 
                 switch (selectedVariable){
                     case "Total Pressure":
-                        displayer.switchVariable(act.cptScenes.getImages(selectedView), bsl.cptScenes.getImages(selectedView), count);
+                        displayer.switchVariable(act.cptScenes.getImages(selectedView), bsl.cptScenes.getImages(selectedView), delta.cptScenes.getImages(selectedView),  count);
                         break;
                     case "Pressure":
-                        displayer.switchVariable(act.pressureScenes.getImages(selectedView), bsl.pressureScenes.getImages(selectedView), count);
+                        displayer.switchVariable(act.pressureScenes.getImages(selectedView), bsl.pressureScenes.getImages(selectedView), delta.pressureScenes.getImages(selectedView), count);
                         break;
                     case "Inwash":
-                        displayer.switchVariable(act.inwashScenes.getImages(selectedView), bsl.inwashScenes.getImages(selectedView), count);
+                        displayer.switchVariable(act.inwashScenes.getImages(selectedView), bsl.inwashScenes.getImages(selectedView), delta.inwashScenes.getImages(selectedView), count);
                         break;
                     case "Velocity Z":
-                        displayer.switchVariable(act.velZScenes.getImages(selectedView), bsl.velZScenes.getImages(selectedView), count);
+                        displayer.switchVariable(act.velZScenes.getImages(selectedView), bsl.velZScenes.getImages(selectedView), delta.velZScenes.getImages(selectedView), count);
                         break;
                     case "Vorticity":
-                        displayer.switchVariable(act.vorticityScenes.getImages(selectedView), bsl.vorticityScenes.getImages(selectedView), count);
+                        displayer.switchVariable(act.vorticityScenes.getImages(selectedView), bsl.vorticityScenes.getImages(selectedView), delta.vorticityScenes.getImages(selectedView), count);
                         break;
                     default:
                         System.out.println("wtf");
