@@ -20,6 +20,7 @@ public class ImageDisplayPanel extends JPanel {
     private int streamCount;
     private BufferedImage imageToDraw;
     private String textOverlay;
+    private String sceneSlice;
 
     public ImageDisplayPanel(File[] actScene, File[] bslScene, File[] deltaScene, int count, String actSimName, String bslSimName, String deltaSimName){
         this.actScene = actScene;
@@ -109,10 +110,12 @@ public class ImageDisplayPanel extends JPanel {
         if (deltaSceneToggle){
             this.imageToDraw = deltaImage;
             this.textOverlay = this.deltaSimName;
+            this.sceneSlice = this.deltaScene[this.streamCount].getName();
         }
         else{
             this.imageToDraw = actSceneToggle ? actImage : bslImage;
             this.textOverlay = actSceneToggle ? this.actSimName : this.bslSimName;
+            this.sceneSlice = actSceneToggle ? this.actScene[this.streamCount].getName() : this.bslScene[this.streamCount].getName();
         }
 
         if (this.imageToDraw != null) {
@@ -144,6 +147,7 @@ public class ImageDisplayPanel extends JPanel {
             g2d.drawImage(this.imageToDraw, x, y, newWidth, newHeight, this);
             g2d.setFont(new Font("Arial", Font.BOLD, 20));
             g2d.drawString(this.textOverlay, textLoc.x, textLoc.y + 20);
+            g2d.drawString(this.sceneSlice.substring(0, this.sceneSlice.length() - 4), textLoc.x, textLoc.y + 45);
             g2d.dispose();
         }
     }
