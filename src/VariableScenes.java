@@ -1,37 +1,34 @@
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 
 public class VariableScenes {
-    private final ArrayList<File> sceneFiles;
+    private final List<File> sceneFiles;
 
-    public VariableScenes(ArrayList<File> sceneFiles) {
-        this.sceneFiles = sceneFiles;
+    public VariableScenes(List<File> sceneFiles) {
+        this.sceneFiles = sceneFiles != null ? new ArrayList<>(sceneFiles) : Collections.emptyList();
     }
 
     public File[] getImages(String view) {
-        String dir = "";
+        if (view == null || view.isEmpty()) return new File[0];
 
-        for (File file : this.sceneFiles) {
-            if (file.getName().contains(view)) {
-                dir = file.getAbsolutePath();
+        // Find View directory
+        for (File file : sceneFiles) {
+            if (file != null && file.getName().contains(view) && file.isDirectory()) {
+                File[] imageFiles = file.listFiles();
+
+                if (imageFiles != null) {
+                    Arrays.sort(imageFiles, Comparator.comparing(File::getName));
+                    return imageFiles;
+                }
+                break;
             }
         }
 
-        File imageDir = new File(dir + File.separator);
-        File[] imageFiles = imageDir.listFiles();
-        assert imageFiles != null;
-        Arrays.sort(imageFiles, Comparator.comparing(File::getName));
-
-        return imageFiles;
+        return new File[0]; // If nothing found
     }
 
-    public ArrayList<File> getSceneFiles() {
-        return sceneFiles;
+    // Not used rn, but bethod to retrieve all the specific scenefiles if ever needed in main
+    public List<File> getSceneFiles() {
+        return Collections.unmodifiableList(sceneFiles);
     }
 }
-

@@ -1,55 +1,69 @@
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 public class SceneLoader {
 
     public static final String EXTENSION = ".png";
     public static final String SCENES_2D = "2D scenes";
-    public static final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "Vorticity", "Velocity Z"};
+    public static final String[] VARIABLES = {
+            "Inwash", "Pressure", "Total Pressure", "Vorticity", "Velocity Z"
+    };
+
     public final VariableScenes inwashScenes;
     public final VariableScenes pressureScenes;
     public final VariableScenes cptScenes;
     public final VariableScenes vorticityScenes;
     public final VariableScenes velZScenes;
-    public String dir;
+    public final String dir;
 
-    public SceneLoader(String dir){
+    public SceneLoader(String dir) {
+        this.dir = dir;
 
-        File sim = new File(dir + File.separator + SCENES_2D + File.separator);
-        File[] allScenes = sim.listFiles();
-        String[] allScenesNames = new String[allScenes.length];
-
-        for (int i = 0; i < allScenes.length; i++) {
-            allScenesNames[i] = allScenes[i].getName();
+        File scenesRoot = new File(dir, SCENES_2D);
+        File[] allScenes = scenesRoot.listFiles(File::isDirectory);
+        if (allScenes == null) {
+            allScenes = new File[0];
         }
 
-        this.inwashScenes = new VariableScenes(getVariableScenes(VARIABLES[0], allScenes));
-        this.pressureScenes = new VariableScenes(getVariableScenes(VARIABLES[1], allScenes));
-        this.cptScenes = new VariableScenes(getVariableScenes(VARIABLES[2], allScenes));
-        this.vorticityScenes = new VariableScenes(getVariableScenes(VARIABLES[3], allScenes));
-        this.velZScenes = new VariableScenes(getVariableScenes(VARIABLES[4], allScenes));
+        // Load variable-specific scene folders
+        List<File> inwash = getVariableScenes("Inwash", allScenes);
+        List<File> pressure = getVariableScenes("Pressure", allScenes);
+        List<File> totalPressure = getVariableScenes("Total Pressure", allScenes);
+        List<File> vorticity = getVariableScenes("Vorticity", allScenes);
+        List<File> velZ = getVariableScenes("Velocity Z", allScenes);
+
+        // Final Variable scene instances to refer back to in main loop
+        this.inwashScenes = new VariableScenes(inwash);
+        this.pressureScenes = new VariableScenes(pressure);
+        this.cptScenes = new VariableScenes(totalPressure);
+        this.vorticityScenes = new VariableScenes(vorticity);
+        this.velZScenes = new VariableScenes(velZ);
     }
 
-    private ArrayList<File> getVariableScenes(String variable, File[] allScenes){
-        ArrayList<Integer> index = new ArrayList<>();
-        ArrayList<File> variableScenes = new ArrayList<File>();
+    /**
+     * Filters the given directories to match the variable name.
+     */
+    private List<File> getVariableScenes(String variable, File[] allScenes) {
+        List<File> result = new ArrayList<>();
+        if (allScenes == null || variable == null) return result;
 
-        for (int i = 0; i < allScenes.length; i++){
-            if (variable.equals("Pressure")) {
-                if (allScenes[i].getName().contains("Pressure") && !allScenes[i].getName().contains("Total Pressure")) {
-                    index.add(i);
+        for (File scene : allScenes) {
+            if (scene == null || !scene.isDirectory()) continue;
+            String name = scene.getName();
+
+            // Ensure Presure and Total Pressure does not overlap
+            if ("Pressure".equals(variable)) {
+                if (name.contains("Pressure") && !name.contains("Total Pressure")) {
+                    result.add(scene);
                 }
-            }
-            else {
-                if (allScenes[i].getName().contains(variable)) {
-                    index.add(i);
-                }
+            } else if (name.contains(variable)) {
+                result.add(scene);
             }
         }
-        for (Integer integer : index) {
-            variableScenes.add(allScenes[integer]);
-        }
-        return variableScenes;
+
+        return result;
     }
 }

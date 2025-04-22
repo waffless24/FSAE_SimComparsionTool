@@ -1,216 +1,279 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 
 public class Main {
-    public static void main(String[] args) {
 
-        final String[] VIEWS = {"AftFore", "TopBottom", "Profile"};
-        final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "Vorticity", "Velocity Z"};
-        final boolean[] toggleFlag = {false}; //flag for toggling since swing repeatedly sends signals while a key is pressed
-        final boolean[] deltaFlag = {false}; //flag for toggling delta; same reason
-        String pwd = System.getProperty("user.dir");
+    //File Structure Constants
+    private static final String[] VIEWS = {"AftFore", "TopBottom", "Profile"};
+    private static final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "Vorticity", "Velocity Z"};
+    //Action Commands
+    private static final String ACTION_STREAM_DOWN = "streamDown";
+    private static final String ACTION_STREAM_UP = "streamUp";
+    private static final String ACTION_TOGGLE_ACTIVE = "toggleActive";
+    private static final String ACTION_TOGGLE_BASELINE = "toggleBaseline";
+    private static final String ACTION_TOGGLE_DELTA = "toggleDelta";
 
-        System.out.println("Choose Active Sim:");
-        JFileChooser actFC = new JFileChooser(pwd);
-        actFC.setDialogTitle("Choose Active Sim CM");
-        actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int actResult = actFC.showOpenDialog(null);
+    // View Tracker Variable
+    private static String currentView = VIEWS[0]; // Initialize with default
 
-        // Check if user clicked "Choose"
-        if (actResult == JFileChooser.APPROVE_OPTION) {
-            while (!actFC.getSelectedFile().getName().contains("CM")) {
-                System.out.println("Please select a colour-mapped file (MUST begin with CM_)");
-                actFC.setDialogTitle("Choose Active Sim CM");
-                actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                actFC.showOpenDialog(null);
+    /**
+     * Helper method to show a JFileChooser, validate the selection, and return the chosen directory.
+     *
+     * @param parent      The parent component for the dialog.
+     * @param title       The dialog title.
+     * @param startPath   The initial directory path.
+     * @param validationSubstring String that the directory name must contain (just put this here incase it ever changes)
+     * @return The selected directory File (or null)
+     */
+    private static File selectSimulationDirectory(Component parent, String title, String startPath, String validationSubstring) {
+        JFileChooser fileChooser = new JFileChooser(startPath);
+        fileChooser.setDialogTitle(title);
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false); // Only allow directories
+
+        File selectedFile = null;
+        boolean validSelection = false;
+
+        while (!validSelection) {
+            int result = fileChooser.showOpenDialog(parent);
+
+            if (result == JFileChooser.APPROVE_OPTION) {
+                selectedFile = fileChooser.getSelectedFile();
+                // Validate: Check if null and if name contains the required substring
+                if (selectedFile != null && (validationSubstring == null || selectedFile.getName().contains(validationSubstring))) {
+                    System.out.println("Selected " + title + ": " + selectedFile.getAbsolutePath());
+                    validSelection = true;
+                } else {
+                    String validationMsg = validationSubstring != null ? "Directory name must contain '" + validationSubstring + "'." : "Invalid selection.";
+                    JOptionPane.showMessageDialog(parent,
+                            "Invalid directory selected. " + validationMsg,
+                            "Selection Error", JOptionPane.WARNING_MESSAGE);
+                    // Loop continues, JFileChooser will reopen
+                    selectedFile = null; // Reset selected file if invalid
+                }
+            } else { // User cancelled or closed the dialog
+                System.out.println(title + " selection cancelled by user.");
+                return null;
             }
-            System.out.println("Selected file: " + actFC.getSelectedFile().getAbsolutePath());
         }
-        else if (actResult == JFileChooser.CANCEL_OPTION) {
-            System.out.println("Program Terminated by User");
-            System.exit(0);
-        }
-        else {
-            System.out.println("No Active File Selected. Program Terminated");
-            System.exit(0);
-        }
+        return selectedFile;
+    }
 
+    /**
+     * Sets up Key Bindings for the ImageDisplayPanel.
+     * @param displayer The panel to attach key bindings to.
+     */
+    private static void setupKeyBindings(ImageDisplayPanel displayer) {
+        InputMap inputMap = displayer.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        ActionMap actionMap = displayer.getActionMap();
 
-        System.out.println("Choose BSL sim:");
-        JFileChooser bslFC = new JFileChooser(pwd);
-        bslFC.setDialogTitle("Choose BSL sim");
-        bslFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int bslResult = bslFC.showOpenDialog(null);
-
-        // Check if user clicked "Choose"
-        if (bslResult == JFileChooser.APPROVE_OPTION) {
-            while (!actFC.getSelectedFile().getName().contains("CM")) {
-                System.out.println("Please select a colour-mapped file (MUST begin with CM_)");
-                actFC.setDialogTitle("Choose Active Sim CM");
-                actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                actFC.showOpenDialog(null);
+        // Right Arrow -> Stream Down
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), ACTION_STREAM_DOWN);
+        actionMap.put(ACTION_STREAM_DOWN, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayer.toggleStreamDown();
             }
-            System.out.println("Selected file: " + bslFC.getSelectedFile().getAbsolutePath());
-        }
-        else if (bslResult == JFileChooser.CANCEL_OPTION) {
-            System.out.println("Program Terminated by User");
-            System.exit(0);
-        }
-        else {
-            System.out.println("No Baseline File Selected. Program Terminated");
-            System.exit(0);
-        }
-
-
-        System.out.println("Choose Delta sim:");
-        JFileChooser deltaFC = new JFileChooser(pwd);
-        deltaFC.setDialogTitle("Choose Delta sim");
-        deltaFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int deltaResult = deltaFC.showOpenDialog(null);
-
-        // Check if user clicked "Choose"
-        if (deltaResult == JFileChooser.APPROVE_OPTION) {
-            while (!actFC.getSelectedFile().getName().contains("CM")){
-                System.out.println("Please select a colour-mapped file (MUST begin with CM_)");
-                actFC.setDialogTitle("Choose Active Sim CM");
-                actFC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                actFC.showOpenDialog(null);
-            }
-            System.out.println("Selected file: " + deltaFC.getSelectedFile().getAbsolutePath());
-        } else {
-            System.out.println("No Delta File Selected. Program Terminated");
-            System.exit(0);
-        }
-
-
-        JFrame window = new JFrame();
-        window.setTitle("SimComparisonTool");
-        window.setSize(2000, 1000);
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //exit out application by default
-        window.getContentPane().setBackground(new Color(25, 25, 25));
-
-        SceneLoader act = new SceneLoader(actFC.getSelectedFile().getAbsolutePath());
-        SceneLoader bsl = new SceneLoader(bslFC.getSelectedFile().getAbsolutePath());
-        SceneLoader delta = new SceneLoader(deltaFC.getSelectedFile().getAbsolutePath());
-
-        // Flag to check if the view is constant, to keep the same section when switching variables
-        final String[] currentView = {VIEWS[0]};
-        ImageDisplayPanel displayer = new ImageDisplayPanel(act.cptScenes.getImages(currentView[0]), bsl.cptScenes.getImages(currentView[0]), delta.cptScenes.getImages(currentView[0]),  0,
-                actFC.getSelectedFile().getName(), bslFC.getSelectedFile().getName(), deltaFC.getSelectedFile().getName());
-
-        // Toggling mechanism
-        window.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                // Moving downstream with right arrow
-                if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
-                    displayer.toggleStreamDown();
-                }
-                // Moving upstream with left arrown
-                if (e.getKeyCode() == KeyEvent.VK_LEFT) {
-                    displayer.toggleStreamUp();
-                }
-
-                // Toggling between active and basline
-                if (e.getKeyCode() == KeyEvent.VK_1) {
-                    displayer.toggleActive();
-                }
-
-                if (e.getKeyCode() == KeyEvent.VK_2) {
-                    displayer.toggleBaseline();
-                }
-
-                if (e.getKeyCode() == KeyEvent.VK_D) {
-                    displayer.toggleDelta();
-                }
-            }
-
         });
 
+        // Left Arrow -> Stream Up
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), ACTION_STREAM_UP);
+        actionMap.put(ACTION_STREAM_UP, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayer.toggleStreamUp();
+            }
+        });
+
+        // '1' Key -> Toggle Active
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), ACTION_TOGGLE_ACTIVE);
+        actionMap.put(ACTION_TOGGLE_ACTIVE, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayer.toggleActive();
+            }
+        });
+
+        // '2' Key -> Toggle Baseline
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), ACTION_TOGGLE_BASELINE);
+        actionMap.put(ACTION_TOGGLE_BASELINE, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayer.toggleBaseline();
+            }
+        });
+
+        // 'D' Key -> Toggle Delta
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), ACTION_TOGGLE_DELTA);
+        actionMap.put(ACTION_TOGGLE_DELTA, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                displayer.toggleDelta();
+            }
+        });
+    }
+
+
+    /**
+     * Main Class
+     * Uses SwingUtilities.invokeLater to ensure GUI operations run on the EDT.
+     */
+    public static void main(String[] args) {
+        // Run GUI setup on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> createAndShowGui());
+    }
+
+    /**
+     * Creates and shows the main application GUI.
+     */
+    private static void createAndShowGui() {
+        String pwd = System.getProperty("user.dir");
+
+        // --- File Selection ---
+        File actDir = selectSimulationDirectory(null, "Choose Active Sim CM", pwd, "CM");
+        if (actDir == null) {
+            System.out.println("Active sim selection required. Program Terminated.");
+            System.exit(0); // Or handle more gracefully
+        }
+
+        File bslDir = selectSimulationDirectory(null, "Choose Baseline Sim CM", pwd, "CM");
+        if (bslDir == null) {
+            System.out.println("Baseline sim selection required. Program Terminated.");
+            System.exit(0);
+        }
+
+        File deltaDir = selectSimulationDirectory(null, "Choose Delta Sim CM", pwd, "CM");
+        if (deltaDir == null) {
+            System.out.println("Delta sim selection required. Program Terminated.");
+            System.exit(0);
+        }
+
+        // --- Window Setup ---
+        JFrame window = new JFrame();
+        window.setTitle("SimComparisonTool");
+        window.setSize(1600, 900); // Adjusted size slightly
+        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        window.getContentPane().setBackground(new Color(229, 229, 229));
+
+        // --- Scene Loading ---
+        SceneLoader actLoader = new SceneLoader(actDir.getAbsolutePath());
+        SceneLoader bslLoader = new SceneLoader(bslDir.getAbsolutePath());
+        SceneLoader deltaLoader = new SceneLoader(deltaDir.getAbsolutePath());
+
+        // --- Image Display Panel Setup ---
+        // Initialize with the default view
+        ImageDisplayPanel displayer = new ImageDisplayPanel(
+                actLoader.cptScenes.getImages(currentView), // Assuming default 'Total Pressure' initially
+                bslLoader.cptScenes.getImages(currentView),
+                deltaLoader.cptScenes.getImages(currentView),
+                0,
+                actDir.getName(),
+                bslDir.getName(),
+                deltaDir.getName()
+        );
+
+        // --- Popup Menu Setup ---
         JPopupMenu mainMenu = new JPopupMenu();
 
-        //ActionListener to retrieve selected value
-        ActionListener menuListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent event) {
-                JMenuItem source = (JMenuItem) event.getSource(); // Get clicked item
-                JPopupMenu parentMenu = (JPopupMenu) source.getParent();   // Get parent menu
+        ActionListener menuListener = event -> {
+            JMenuItem source = (JMenuItem) event.getSource();
+            JPopupMenu popupMenu = (JPopupMenu) source.getParent();
+            JMenu parentMenu = (JMenu) popupMenu.getInvoker(); // Get the submenu that was selected
 
-                String selectedView = event.getActionCommand(); // View name (submenu item)
-                String dummySelectedVariable = String.valueOf(parentMenu.getInvoker());// Variable name (parent menu)
-                int index = dummySelectedVariable.indexOf(",text=");
-                String selectedVariable = dummySelectedVariable.substring(index + 6, dummySelectedVariable.length() - 1);
+            String selectedView = event.getActionCommand(); // View name
+            String selectedVariable = parentMenu.getText(); // Variable name
 
-                System.out.println("Selected Variable: " + selectedVariable);
-                System.out.println("Selected View: " + selectedView);
+            System.out.println("Selected Variable: " + selectedVariable);
+            System.out.println("Selected View: " + selectedView);
 
-                int count = 0;
+            // Determine if streamCount needs resetting (0) or preserving (-1)
+            int count = currentView.equals(selectedView) ? -1 : 0;
 
-                if (currentView[0].equals(selectedView)){
-                    count = -1;
-                }
-                else {
-                    currentView[0] = selectedView;
-                }
-
-                switch (selectedVariable){
-                    case "Total Pressure":
-                        displayer.switchVariable(act.cptScenes.getImages(selectedView), bsl.cptScenes.getImages(selectedView), delta.cptScenes.getImages(selectedView),  count);
-                        break;
-                    case "Pressure":
-                        displayer.switchVariable(act.pressureScenes.getImages(selectedView), bsl.pressureScenes.getImages(selectedView), delta.pressureScenes.getImages(selectedView), count);
-                        break;
-                    case "Inwash":
-                        displayer.switchVariable(act.inwashScenes.getImages(selectedView), bsl.inwashScenes.getImages(selectedView), delta.inwashScenes.getImages(selectedView), count);
-                        break;
-                    case "Velocity Z":
-                        displayer.switchVariable(act.velZScenes.getImages(selectedView), bsl.velZScenes.getImages(selectedView), delta.velZScenes.getImages(selectedView), count);
-                        break;
-                    case "Vorticity":
-                        displayer.switchVariable(act.vorticityScenes.getImages(selectedView), bsl.vorticityScenes.getImages(selectedView), delta.vorticityScenes.getImages(selectedView), count);
-                        break;
-                    default:
-                        System.out.println("wtf");
-                }
-
+            if (!currentView.equals(selectedView)) {
+                currentView = selectedView; // Update the current view state
             }
+
+            // Use SceneLoader instances
+            VariableScenes actScenes;
+            VariableScenes bslScenes;
+            VariableScenes deltaScenes;
+            switch (selectedVariable) {
+                case "Total Pressure":
+                    actScenes = actLoader.cptScenes;
+                    bslScenes = bslLoader.cptScenes;
+                    deltaScenes = deltaLoader.cptScenes;
+                    break;
+                case "Pressure":
+                    actScenes = actLoader.pressureScenes;
+                    bslScenes = bslLoader.pressureScenes;
+                    deltaScenes = deltaLoader.pressureScenes;
+                    break;
+                case "Inwash":
+                    actScenes = actLoader.inwashScenes;
+                    bslScenes = bslLoader.inwashScenes;
+                    deltaScenes = deltaLoader.inwashScenes;
+                    break;
+                case "Velocity Z":
+                    actScenes = actLoader.velZScenes;
+                    bslScenes = bslLoader.velZScenes;
+                    deltaScenes = deltaLoader.velZScenes;
+                    break;
+                case "Vorticity":
+                    actScenes = actLoader.vorticityScenes;
+                    bslScenes = bslLoader.vorticityScenes;
+                    deltaScenes = deltaLoader.vorticityScenes;
+                    break;
+                default:
+                    System.err.println("Unknown variable selected: " + selectedVariable);
+                    return;
+            }
+
+            displayer.switchVariable(
+                    actScenes.getImages(selectedView),
+                    bslScenes.getImages(selectedView),
+                    deltaScenes.getImages(selectedView),
+                    count);
         };
 
-        for (String s : VARIABLES) {
-            JMenu variableMenu = new JMenu(s); // Create a new menu for each variable
-
-            // Create submenu items inside this loop to ensure each menu gets its own set
+        // Popup Menu
+        for (String variable : VARIABLES) {
+            JMenu variableMenu = new JMenu(variable); // Submenu for each variable
             for (String view : VIEWS) {
                 JMenuItem viewItem = new JMenuItem(view);
                 viewItem.addActionListener(menuListener);
-                variableMenu.add(viewItem); // Add directly to the current submenu
+                variableMenu.add(viewItem);
             }
-
-            mainMenu.add(variableMenu);// Add submenu to the popup menu
+            mainMenu.add(variableMenu);
         }
 
-        class PopupListener extends MouseAdapter {
+        // --- Mouse Listener for Popup ---
+        MouseListener popupListener = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
             }
 
+            @Override
             public void mouseReleased(MouseEvent e) {
                 maybeShowPopup(e);
             }
 
             private void maybeShowPopup(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
+                // Show popup on right-click
+                if (e.isPopupTrigger()) {
                     mainMenu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
-        }
+        };
 
-        MouseListener popupListener = new PopupListener();
         displayer.addMouseListener(popupListener);
-        displayer.add(mainMenu);
-        window.add(displayer);
-        window.setVisible(true);
+        setupKeyBindings(displayer); // Setup key bindings
 
+        // --- Finalize Window ---
+        window.add(displayer);
+        window.setLocationRelativeTo(null);
+        window.setVisible(true);
     }
 }
