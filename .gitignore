@@ -3,9 +3,7 @@ META-INF/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-/CM_PF25_BSL_YAW10_23097488/
-/CM_PF25_BSL_FC_22911598_vs_PF25_BSL_YAW10_23097488/
-/CM_PF25_BSL_FC_22911598/
+/TestFiles/
 
 ### Eclipse ###
 .apt_generated
