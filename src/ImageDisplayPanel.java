@@ -357,35 +357,62 @@ public class ImageDisplayPanel extends JPanel {
             g2d.drawString(textOverlay, textX, 18);
             g2d.drawString(sceneSlice, textX, 35);
 
+            // After drawing imageToDraw at (x,y) with size (newWidth, newHeight)
             if (showGrid) {
-                g2d.setColor(new Color(0, 0, 0, 64)); // light black
-                // 3542.0 mm is the entire scene distance (rough number can't be entirely accurate);
-                // However, grid resolution of accuracy upto this point doesn't matter since its offset by CFD inaccuracies
-                int majorStep = (int) Math.round(20 * imgWidth / 3542.0);
-                int minorStep = majorStep / 4;  // for subgrids every 2 mm
 
-                // Grid in image space
-                for (int i = 0; i <= imgWidth; i += minorStep) {
-                    double px = x + i * scale;
-                    if (i % majorStep == 0) {
-                        g2d.setStroke(new BasicStroke(1.0f));
-                    } else {
-                        g2d.setStroke(new BasicStroke(0.5f));
-                    }
-                    g2d.drawLine((int) px, y, (int) px, y + newHeight);
-                }
+                // Physical size in mm
+                double totalWidthMM = 3542.0;  // 354.2 cm * 10
+                double majorGridMM = 100.0;
+                double minorGridMM = 10.0;
 
-                for (int j = 0; j <= imgHeight; j += minorStep) {
-                    double py = y + j * scale;
-                    if (j % majorStep == 0) {
-                        g2d.setStroke(new BasicStroke(1.0f));
-                    } else {
-                        g2d.setStroke(new BasicStroke(0.5f));
-                    }
-                    g2d.drawLine(x, (int) py, x + newWidth, (int) py);
-                }
+                // Convert mm to image pixels (original scale)
+                double majorStepPxOriginal = (majorGridMM * imgWidth) / totalWidthMM;
+                double minorStepPxOriginal = (minorGridMM * imgWidth) / totalWidthMM;
 
-                g2d.setStroke(new BasicStroke()); // Reset stroke
+                // Scaled pixel size
+                double majorStepPx = majorStepPxOriginal * scale;
+                double minorStepPx = minorStepPxOriginal * scale;
+
+                // Offsets in original pixels (then scaled)
+                // I don't know why the car is not centered but it isn't so offsets are needed
+                double xOffsetPx = 0.75 * minorStepPx;
+                double yOffsetPx = -4.35 * minorStepPx;
+
+                // Center of the image in panel coordinates
+                double imgCenterX = x + (imgWidth / 2.0) * scale + xOffsetPx;
+                double imgCenterY = y + (imgHeight / 2.0) * scale + yOffsetPx;
+
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Minor grid
+                g2d.setColor(new Color(20, 20, 20, 60));
+                g2d.setStroke(new BasicStroke(0.5f));
+
+                for (double gx = imgCenterX; gx <= x + newWidth; gx += minorStepPx)
+                    g2d.drawLine((int) gx, y, (int) gx, y + newHeight);
+                for (double gx = imgCenterX - minorStepPx; gx >= x; gx -= minorStepPx)
+                    g2d.drawLine((int) gx, y, (int) gx, y + newHeight);
+
+                for (double gy = imgCenterY; gy <= y + newHeight; gy += minorStepPx)
+                    g2d.drawLine(x, (int) gy, x + newWidth, (int) gy);
+                for (double gy = imgCenterY - minorStepPx; gy >= y; gy -= minorStepPx)
+                    g2d.drawLine(x, (int) gy, x + newWidth, (int) gy);
+
+                //Major grid
+                g2d.setColor(new Color(20, 20, 20, 100));
+                g2d.setStroke(new BasicStroke(1.2f));
+
+                for (double gx = imgCenterX; gx <= x + newWidth; gx += majorStepPx)
+                    g2d.drawLine((int) gx, y, (int) gx, y + newHeight);
+                for (double gx = imgCenterX - majorStepPx; gx >= x; gx -= majorStepPx)
+                    g2d.drawLine((int) gx, y, (int) gx, y + newHeight);
+
+                for (double gy = imgCenterY; gy <= y + newHeight; gy += majorStepPx)
+                    g2d.drawLine(x, (int) gy, x + newWidth, (int) gy);
+                for (double gy = imgCenterY - majorStepPx; gy >= y; gy -= majorStepPx)
+                    g2d.drawLine(x, (int) gy, x + newWidth, (int) gy);
+
+                g2d.dispose();
             }
 
             g2d.dispose();
