@@ -359,8 +359,10 @@ public class ImageDisplayPanel extends JPanel {
 
             if (showGrid) {
                 g2d.setColor(new Color(0, 0, 0, 64)); // light black
-                int majorStep = 100;
-                int minorStep = 20;
+                // 3542.0 mm is the entire scene distance (rough number can't be entirely accurate);
+                // However, grid resolution of accuracy upto this point doesn't matter since its offset by CFD inaccuracies
+                int majorStep = (int) Math.round(20 * imgWidth / 3542.0);
+                int minorStep = majorStep / 4;  // for subgrids every 2 mm
 
                 // Grid in image space
                 for (int i = 0; i <= imgWidth; i += minorStep) {
