@@ -7,7 +7,7 @@ public class Main {
 
     //File Structure Constants
     private static final String[] VIEWS = {"AftFore", "TopBottom", "Profile"};
-    private static final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "Vorticity", "Velocity Z"};
+    private static final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "VISQ", "Velocity Z"};
     //Action Commands
     private static final String ACTION_STREAM_DOWN = "streamDown";
     private static final String ACTION_STREAM_UP = "streamUp";
@@ -220,7 +220,7 @@ public class Main {
                     bslScenes = bslLoader.velZScenes;
                     deltaScenes = deltaLoader.velZScenes;
                     break;
-                case "Vorticity":
+                case "VISQ":
                     actScenes = actLoader.vorticityScenes;
                     bslScenes = bslLoader.vorticityScenes;
                     deltaScenes = deltaLoader.vorticityScenes;
