@@ -7,7 +7,7 @@ public class Main {
 
     //File Structure Constants
     private static final String[] VIEWS = {"AftFore", "TopBottom", "Profile"};
-    private static final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "VISQ", "Velocity Z"};
+    private static final String[] VARIABLES = {"Inwash", "Pressure", "Total Pressure", "VISQ", "Velocity Z", "Helicity"};
     //Action Commands
     private static final String ACTION_STREAM_DOWN = "streamDown";
     private static final String ACTION_STREAM_UP = "streamUp";
@@ -224,6 +224,11 @@ public class Main {
                     actScenes = actLoader.vorticityScenes;
                     bslScenes = bslLoader.vorticityScenes;
                     deltaScenes = deltaLoader.vorticityScenes;
+                    break;
+                case "Helicity":
+                    actScenes = actLoader.helicityScenes;
+                    bslScenes = bslLoader.helicityScenes;
+                    deltaScenes = deltaLoader.helicityScenes;
                     break;
                 default:
                     System.err.println("Unknown variable selected: " + selectedVariable);
