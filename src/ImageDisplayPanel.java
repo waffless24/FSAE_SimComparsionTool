@@ -36,7 +36,9 @@ public class ImageDisplayPanel extends JPanel {
     private int lastImageWidth = 0;
     private int lastImageHeight = 0;
 
-    private final Font textFont = new Font("Arial", Font.BOLD, 20);
+    private boolean showGrid = false;
+
+    private final Font textFont = new Font("Source Sans Pro", Font.ITALIC, 15);
 
     public ImageDisplayPanel(File[] actScene, File[] bslScene, File[] deltaScene, int count, String actSimName, String bslSimName, String deltaSimName) {
         this.actSceneFiles = actScene;
@@ -146,6 +148,20 @@ public class ImageDisplayPanel extends JPanel {
                 }
             }
         });
+
+        // Add grid pressing the key 'G'
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_R) {
+                    resetView();
+                } else if (e.getKeyCode() == KeyEvent.VK_G) {
+                    showGrid = !showGrid;
+                    repaint();
+                }
+            }
+        });
+
     }
 
     private void loadCurrentImageAsync() {
@@ -279,10 +295,10 @@ public class ImageDisplayPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        BufferedImage imageToDraw = null;
-        String textOverlay = "";
-        String sceneSlice = "";
-        File currentFile = null;
+        BufferedImage imageToDraw;
+        String textOverlay;
+        String sceneSlice;
+        File currentFile;
 
         if (deltaSceneToggle) {
             imageToDraw = currentDeltaImage;
@@ -338,18 +354,48 @@ public class ImageDisplayPanel extends JPanel {
             g2d.setFont(textFont);
 
             int textX = 5;
-            g2d.drawString(textOverlay, textX, 20);
-            g2d.drawString(sceneSlice, textX, 45);
+            g2d.drawString(textOverlay, textX, 18);
+            g2d.drawString(sceneSlice, textX, 35);
+
+            if (showGrid) {
+                g2d.setColor(new Color(0, 0, 0, 64)); // light black
+                int majorStep = 100;
+                int minorStep = 20;
+
+                // Grid in image space
+                for (int i = 0; i <= imgWidth; i += minorStep) {
+                    double px = x + i * scale;
+                    if (i % majorStep == 0) {
+                        g2d.setStroke(new BasicStroke(1.0f));
+                    } else {
+                        g2d.setStroke(new BasicStroke(0.5f));
+                    }
+                    g2d.drawLine((int) px, y, (int) px, y + newHeight);
+                }
+
+                for (int j = 0; j <= imgHeight; j += minorStep) {
+                    double py = y + j * scale;
+                    if (j % majorStep == 0) {
+                        g2d.setStroke(new BasicStroke(1.0f));
+                    } else {
+                        g2d.setStroke(new BasicStroke(0.5f));
+                    }
+                    g2d.drawLine(x, (int) py, x + newWidth, (int) py);
+                }
+
+                g2d.setStroke(new BasicStroke()); // Reset stroke
+            }
 
             g2d.dispose();
         } else {
-            g.setColor(Color.RED);
+            g.setColor(Color.BLACK);
             g.setFont(textFont);
-            String errorMsg = "Image unavailable";
+            String errorMsg = "Loading...";
             FontMetrics fm = g.getFontMetrics();
             int msgWidth = fm.stringWidth(errorMsg);
             int msgHeight = fm.getAscent();
             g.drawString(errorMsg, (getWidth() - msgWidth) / 2, (getHeight() - msgHeight) / 2 + fm.getAscent());
         }
+
     }
 }
