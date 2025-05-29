@@ -135,7 +135,7 @@ public class Main {
         File actDir = selectSimulationDirectory(null, "Choose Active Sim CM", pwd, "CM");
         if (actDir == null) {
             System.out.println("Active sim selection required. Program Terminated.");
-            System.exit(0); // Or handle more gracefully
+            System.exit(0);
         }
 
         File bslDir = selectSimulationDirectory(null, "Choose Baseline Sim CM", pwd, "CM");
@@ -153,7 +153,7 @@ public class Main {
         // --- Window Setup ---
         JFrame window = new JFrame();
         window.setTitle("SimComparisonTool");
-        window.setSize(1600, 900); // Adjusted size slightly
+        window.setSize(1600, 900);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.getContentPane().setBackground(new Color(229, 229, 229));
 
@@ -165,7 +165,7 @@ public class Main {
         // --- Image Display Panel Setup ---
         // Initialize with the default view
         ImageDisplayPanel displayer = new ImageDisplayPanel(
-                actLoader.cptScenes.getImages(currentView), // Assuming default 'Total Pressure' initially
+                actLoader.cptScenes.getImages(currentView), // Default to 'Total Pressure' initially
                 bslLoader.cptScenes.getImages(currentView),
                 deltaLoader.cptScenes.getImages(currentView),
                 0,
@@ -239,7 +239,7 @@ public class Main {
                     actScenes.getImages(selectedView),
                     bslScenes.getImages(selectedView),
                     deltaScenes.getImages(selectedView),
-                    count);
+                    count, selectedView);
         };
 
         // Popup Menu

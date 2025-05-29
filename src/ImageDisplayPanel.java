@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Objects;
 
 public class ImageDisplayPanel extends JPanel {
     private File[] actSceneFiles;
@@ -39,6 +40,7 @@ public class ImageDisplayPanel extends JPanel {
     private boolean showGrid = false;
 
     private final Font textFont = new Font("Source Sans Pro", Font.ITALIC, 15);
+    private String selectedView;
 
     public ImageDisplayPanel(File[] actScene, File[] bslScene, File[] deltaScene, int count, String actSimName, String bslSimName, String deltaSimName) {
         this.actSceneFiles = actScene;
@@ -220,10 +222,11 @@ public class ImageDisplayPanel extends JPanel {
         }
     }
 
-    public void switchVariable(File[] actScene, File[] bslScene, File[] deltaScene, int count) {
+    public void switchVariable(File[] actScene, File[] bslScene, File[] deltaScene, int count, String selectedView) {
         this.actSceneFiles = actScene;
         this.bslSceneFiles = bslScene;
         this.deltaSceneFiles = deltaScene;
+        this.selectedView = selectedView;
         this.totalCount = (actScene != null && actScene.length > 0) ? actScene.length - 1 : -1;
 
         if (count != -1) {
@@ -288,8 +291,6 @@ public class ImageDisplayPanel extends JPanel {
         imageOffset.x = Math.max(-maxOffsetX, Math.min(maxOffsetX, imageOffset.x));
         imageOffset.y = Math.max(-maxOffsetY, Math.min(maxOffsetY, imageOffset.y));
     }
-
-
 
     @Override
     protected void paintComponent(Graphics g) {
@@ -361,7 +362,13 @@ public class ImageDisplayPanel extends JPanel {
             if (showGrid) {
 
                 // Physical size in mm
-                double totalWidthMM = 3542.0;  // 354.2 cm * 10
+                double totalWidthMM;
+
+                if (Objects.equals(this.selectedView, "AftFore"))  totalWidthMM = 3542.0;
+                else if (Objects.equals(this.selectedView, "TopBottom"))  totalWidthMM = 4498.0;
+                else {
+                    totalWidthMM = 3919.0;
+                }
                 double majorGridMM = 100.0;
                 double minorGridMM = 10.0;
 
@@ -375,8 +382,21 @@ public class ImageDisplayPanel extends JPanel {
 
                 // Offsets in original pixels (then scaled)
                 // I don't know why the car is not centered but it isn't so offsets are needed
-                double xOffsetPx = 0.75 * minorStepPx;
-                double yOffsetPx = -4.35 * minorStepPx;
+                double xOffsetPx;
+                double yOffsetPx;
+                if (Objects.equals(this.selectedView, "AftFore")) {
+                    xOffsetPx = 0.75 * minorStepPx;
+                    yOffsetPx = -2.95 * minorStepPx;
+                }
+                else if (Objects.equals(this.selectedView, "TopBottom")) {
+                    xOffsetPx = 0 * minorStepPx;
+                    yOffsetPx = -2.85 * minorStepPx;
+                }
+
+                else{
+                    xOffsetPx = 0 * minorStepPx;
+                    yOffsetPx = -5.1 * minorStepPx;
+                }
 
                 // Center of the image in panel coordinates
                 double imgCenterX = x + (imgWidth / 2.0) * scale + xOffsetPx;
