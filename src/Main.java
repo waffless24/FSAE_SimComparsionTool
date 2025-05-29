@@ -152,7 +152,7 @@ public class Main {
 
         // --- Window Setup ---
         JFrame window = new JFrame();
-        window.setTitle("SimComparisonTool");
+        window.setTitle("Purdue FormulaSAE Flickbook");
         window.setSize(1600, 900);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.getContentPane().setBackground(new Color(229, 229, 229));
