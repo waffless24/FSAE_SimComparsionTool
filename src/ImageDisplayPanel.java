@@ -39,6 +39,12 @@ public class ImageDisplayPanel extends JPanel {
 
     private boolean showGrid = false;
 
+    // --- NEW: State variables for mirror functionality ---
+    private boolean mirrorMode = false;
+    private boolean mirrorVertical = true; // true for vertical, false for horizontal
+    private boolean mirrorFirstHalf = true; // true for left/top, false for right/bottom
+    // --- END NEW ---
+
     private final Font textFont = new Font("Source Sans Pro", Font.ITALIC, 15);
     private String selectedView;
 
@@ -140,30 +146,94 @@ public class ImageDisplayPanel extends JPanel {
             }
         });
 
-        // Reset view with 'R' key
+        // --- MODIFIED: Consolidated Key Listener ---
+        // Combines all key-based actions into a single listener.
         setFocusable(true);
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_R) {
-                    resetView();
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_R:
+                        resetView();
+                        break;
+                    case KeyEvent.VK_G:
+                        showGrid = !showGrid;
+                        repaint();
+                        break;
+                    // --- NEW: Key controls for mirroring ---
+                    case KeyEvent.VK_M: // 'M' to toggle Mirror mode
+                        mirrorMode = !mirrorMode;
+                        repaint();
+                        break;
+                    case KeyEvent.VK_A: // 'A' to switch mirror Axis
+                        mirrorVertical = !mirrorVertical;
+                        repaint();
+                        break;
+                    case KeyEvent.VK_S: // 'S' to switch mirror Side
+                        mirrorFirstHalf = !mirrorFirstHalf;
+                        repaint();
+                        break;
+                    // --- END NEW ---
                 }
             }
         });
+        // --- END MODIFIED ---
+    }
 
-        // Add grid pressing the key 'G'
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_R) {
-                    resetView();
-                } else if (e.getKeyCode() == KeyEvent.VK_G) {
-                    showGrid = !showGrid;
-                    repaint();
-                }
+    // --- CORRECTED: Helper method to create a mirrored image ---
+    /**
+     * Creates a new image by mirroring one half of the source image.
+     * The behavior is controlled by the mirrorVertical and mirrorFirstHalf flags.
+     * @param source The original BufferedImage.
+     * @return A new BufferedImage containing the mirrored result.
+     */
+    private BufferedImage createMirroredImage(BufferedImage source) {
+        if (source == null) return null;
+
+        int width = source.getWidth();
+        int height = source.getHeight();
+        int imageType = source.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : source.getType();
+        BufferedImage mirroredImage = new BufferedImage(width, height, imageType);
+        Graphics2D g2d = mirroredImage.createGraphics();
+
+        if (mirrorVertical) {
+            int midX = 2010;
+            if (mirrorFirstHalf) { // Keep right half, mirror it to the left
+                // Draw the right half of the source to the right side of the destination
+                g2d.drawImage(source, midX, 0, width, height, midX, 0, width, height, null);
+                // Draw the right half of the source mirrored to the left side of the destination
+                g2d.drawImage(source, 0, 0, midX, height, width, 0, midX, height, null);
+
+            } else {
+                // Keep left half, mirror it to the right
+                // Draw the left half of the source to the left side of the destination
+                g2d.drawImage(source, 0, 0, midX, height, 0, 0, midX, height, null);
+                // Draw the left half of the source mirrored to the right side of the destination
+                g2d.drawImage(source, midX, 0, width, height, midX, 0, 0, height, null);
             }
-        });
+        } else { // Horizontal mirror
+            int midY = 1061;
+            if (mirrorFirstHalf) { // Keep top half, mirror it to the bottom
+                // 1. Draw top half normally to the top side of the destination
+                g2d.drawImage(source, 0, 0, width, midY, 0, 0, width, midY, null);
 
+                // 2. [THIS IS THE FIX] Draw the TOP half mirrored to the bottom side of the destination.
+                // To flip vertically, the source Y coordinates are swapped (sy1=midY, sy2=0).
+                // This reads the top half of the source (from y=0 to y=midY) in reverse.
+                g2d.drawImage(source, 0, midY, width, height, 0, midY, width, 0, null);
+
+            } else { // Keep bottom half, mirror it to the top
+                // 1. Draw bottom half normally to the bottom side of the destination
+                g2d.drawImage(source, 0, midY, width, height, 0, midY, width, height, null);
+
+                // 2. Draw the BOTTOM half mirrored to the top side of the destination.
+                // To flip vertically, source Y's are swapped (sy1=height, sy2=midY)
+                g2d.drawImage(source, 0, 0, width, midY, 0, height, width, midY, null);
+            }
+        }
+
+        g2d.dispose();
+        return mirroredImage;
     }
 
     private void loadCurrentImageAsync() {
@@ -317,6 +387,12 @@ public class ImageDisplayPanel extends JPanel {
             }
         }
 
+        // --- NEW: Apply mirroring if enabled ---
+        if (mirrorMode && imageToDraw != null) {
+            imageToDraw = createMirroredImage(imageToDraw);
+        }
+        // --- END NEW ---
+
         if (currentFile != null) {
             sceneSlice = currentFile.getName();
             int dotIndex = sceneSlice.lastIndexOf('.');
@@ -357,6 +433,22 @@ public class ImageDisplayPanel extends JPanel {
             int textX = 5;
             g2d.drawString(textOverlay, textX, 18);
             g2d.drawString(sceneSlice, textX, 35);
+
+            // --- NEW: Display mirror status on screen ---
+            if (mirrorMode) {
+                String mirrorAxisStr = mirrorVertical ? "Vertical" : "Horizontal";
+                String mirrorSideStr;
+                if (mirrorVertical) {
+                    mirrorSideStr = mirrorFirstHalf ? "Right" : "Left";
+                } else {
+                    mirrorSideStr = mirrorFirstHalf ? "Top" : "Bottom";
+                }
+                String mirrorStatus = String.format("Mirror: ON | Axis: %s | Side: %s", mirrorAxisStr, mirrorSideStr);
+
+                g2d.setColor(new Color(220, 50, 50)); // A noticeable red color
+                g2d.drawString(mirrorStatus, textX, 52);
+            }
+            // --- END NEW ---
 
             // After drawing imageToDraw at (x,y) with size (newWidth, newHeight)
             if (showGrid) {
